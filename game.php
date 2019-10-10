@@ -33,11 +33,32 @@ if (empty($_POST)){
         $dealer = $_SESSION["dealer"];
 
         $player->hit();
+
+        /*if ($player->getScore() > 21) {
+            $player->setIsMyTurn(false);
+            $dealer->setIsMyTurn(true);
+        }*/
+
     }
     elseif (!empty($_POST["stand"])){
 
         $player = $_SESSION["player"];
         $dealer = $_SESSION["dealer"];
+
+        $player->stand();
+        $dealer->setIsMyTurn(true);
+
+        while ($dealer->getScore() < 16){
+            $dealer->hit();
+        }
+        $dealer->stand();
+        if ($dealer->getScore() > $player->getScore() && $dealer->getScore() <= 21) {
+            echo "DEALER WINS";
+        } elseif ($dealer->getScore() == $player->getScore() && $dealer->getScore() <= 21) {
+            echo "DRAW";
+        } else {
+            echo "YOU WIN";
+        }
 
     }
     else {
@@ -70,14 +91,22 @@ whatIsHappening();
     <title>Playing Blackjack</title>
 </head>
 <body>
-    <h1>Player</h1>
+    <h1>
+        <?php
+            if ($player -> getScore() > 21){
+                echo "You lose!";
+                $player -> setScore(0);
+            }
+        ?>
+    </h1>
+    <h2>Player</h2>
     <h3>
-        hand: <?php echo $player->getScore();?>
+        hand: <?php echo $player -> getScore();?>
     </h3>
 
-    <h1>Dealer</h1>
+    <h2>Dealer</h2>
     <h3>
-        hand: <?php echo $dealer->getScore();?>
+        hand: <?php echo $dealer -> getScore();?>
     </h3>
 
     <form method="post" action="<?php echo $_SERVER["PHP_SELF"]; ?>">

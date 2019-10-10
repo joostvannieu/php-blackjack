@@ -35,8 +35,10 @@ class Blackjack
 
     public function hit(): void
     {
-        $card = random_int(self::MIN_VALUE, self::MAX_VALUE);
-        $this->score += $card;
+        if ($this->isMyTurn){
+            $card = random_int(self::MIN_VALUE, self::MAX_VALUE);
+            $this->score += $card;
+        }
     }
 
     public function stand()
