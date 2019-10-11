@@ -1,12 +1,15 @@
 <?php
 declare(strict_types=1);
 require "Blackjack.php";
+const BLACKJACK = 21;
+const DEALER_STAND = 16;
 
 //DISPLAY ERRORS
 ini_set('display_errors', "1");
 ini_set('display_startup_errors', "1");
 error_reporting(E_ALL);
 
+//DISPLAY VALUES IN SUPERGLOBALS
 function whatIsHappening() {
     echo '<h2>$_GET</h2>';
     var_dump($_GET);
@@ -18,8 +21,23 @@ function whatIsHappening() {
     var_dump($_SESSION);
 }
 
+function displayOutcome(Blackjack $player, Blackjack $dealer) : string {
+    if (!$player->getIsMyTurn()) {
+        if ($player->getScore() > 21 || (
+                $dealer->getScore() > $player->getScore() && $dealer->getScore() <= BLACKJACK)) {
+            return "Player Loses";
+        } elseif ($player->getScore() == $dealer->getScore() && $player->getScore() <= BLACKJACK && empty($_POST["surrender"])) {
+            return "It's a Draw";
+        } elseif ($player->getScore() > $dealer->getScore() && $player->getScore() <= BLACKJACK && empty($_POST["surrender"])) {
+            return "Player Wins";
+        } elseif (!empty($_POST["surrender"])) {
+            return "Player surrendered";
+        } else return "";
+    } else return "";
+}
+
 session_start();
-if (empty($_POST)){
+if (empty($_POST)){ //At first page load
     $player = new Blackjack(0, true);
     $dealer = new Blackjack(0, false);
 
@@ -34,18 +52,13 @@ if (empty($_POST)){
 
         $player->hit();
 
-        if ($player -> getScore() > 21) {
-            $player->setIsMyTurn(false);
-            echo "<h1>YOU LOSE</h1>";
-        } elseif ($player -> getScore() == 21){
-            $_POST["stand"] = "stand";
-            $_SERVER["PHP_SELF"];
-        }
-
-        /*if ($player->getScore() > 21) {
-            $player->setIsMyTurn(false);
+        if ($player->getScore() == BLACKJACK){
+            $player->stand();
             $dealer->setIsMyTurn(true);
-        }*/
+            $dealer->hit();
+            $dealer->hit();
+        }
+        echo "<h1>". displayOutcome($player, $dealer) ."</h1>";
 
     }elseif (!empty($_POST["stand"])){
 
@@ -55,20 +68,12 @@ if (empty($_POST)){
         $player->stand();
         $dealer->setIsMyTurn(true);
 
-        if ($player->getScore() <= 21) {
-            while ($dealer->getScore() < 16) {
+        if ($player->getScore() <= BLACKJACK) {
+            while ($dealer->getScore() < DEALER_STAND) {
                 $dealer->hit();
             }
             $dealer->stand();
-            if ($dealer->getScore() > $player->getScore() && $dealer->getScore() <= 21) {
-                echo "<h1>DEALER WINS</h1>";
-            } elseif ($dealer->getScore() == $player->getScore() && $dealer->getScore() <= 21) {
-                echo "<h1>DRAW</h1>";
-            } elseif ($player->getScore() > $dealer->getScore() && $player->getScore() <= 21) {
-                echo "<h1>YOU WIN</h1>";
-            }
-        }else {
-            echo "<h1>YOU LOSE</h1>";
+            echo "<h1>". displayOutcome($player, $dealer) ."</h1>";
         }
 
     }elseif (!empty($_POST["surrender"])) {
@@ -77,9 +82,9 @@ if (empty($_POST)){
         $dealer = $_SESSION["dealer"];
 
         $player->surrender();
-        echo "<h1>DEALER WINS</h1>";
+        echo "<h1>". displayOutcome($player, $dealer) ."</h1>";
 
-    }else {
+    }else { //basically when play again is selected
         $player = new Blackjack(0, true);
         $dealer = new Blackjack(0, false);
 
@@ -87,9 +92,6 @@ if (empty($_POST)){
         $_SESSION["dealer"] = $dealer;
     }
 }
-
-
-
 
 //whatIsHappening();
 
@@ -107,6 +109,7 @@ if (empty($_POST)){
     <title>Playing Blackjack</title>
 </head>
 <body>
+    <h1><?php displayOutcome($player, $dealer) ?></h1>
     <h2>Player</h2>
     <h3>
         hand: <?php echo $player -> getScore();?>
@@ -122,7 +125,7 @@ if (empty($_POST)){
         <button type="submit" class="btn btn-primary" name="stand" value="stand">Stand</button>
         <button type="submit" class="btn btn-danger" name="surrender" value="surrender">Surrender</button>
         <br>
-        <button type="submit" class="btn btn-secondary btn-lg" name="play again" value="play again">Play Again</button>
+        <button type="submit" class="btn btn-secondary btn-lg mt-2" name="play again" value="play again">Play Again</button>
 
     </form>
 </body>

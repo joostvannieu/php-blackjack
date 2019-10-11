@@ -6,6 +6,8 @@ class Blackjack
     private const EMPTY_HAND = 0;
     private const MIN_VALUE = 1;
     private const MAX_VALUE = 11;
+    private const BLACKJACK = 21;
+    private const DEALER_STAND = 16;
     private $score;
     private $isMyTurn;
 
@@ -35,9 +37,17 @@ class Blackjack
 
     public function hit(): void
     {
-        if ($this->isMyTurn){
+        if ($this->isMyTurn && $this->score < self::BLACKJACK){
             $card = random_int(self::MIN_VALUE, self::MAX_VALUE);
             $this->score += $card;
+        }
+
+        if ($this-> score > self::BLACKJACK) {
+            $this->isMyTurn = false;
+        } elseif ($this -> score == self::BLACKJACK){
+            $this->isMyTurn = false;
+            //$_POST["stand"] = "stand";
+            //$_SERVER["PHP_SELF"];
         }
     }
 
@@ -49,7 +59,6 @@ class Blackjack
     public function surrender()
     {
         $this->isMyTurn=false;
-        $this->score = self::EMPTY_HAND;
     }
 
 }
