@@ -23,15 +23,17 @@ function whatIsHappening() {
 
 function displayOutcome(Blackjack $player, Blackjack $dealer) : string {
     if (!$player->getIsMyTurn()) {
-        if ($player->getScore() > 21 || (
-                $dealer->getScore() > $player->getScore() && $dealer->getScore() <= BLACKJACK)) {
+        if ($player->getScore() > BLACKJACK || (
+            $dealer->getScore() > $player->getScore() && $dealer->getScore() <= BLACKJACK)) {
             return "Player Loses";
-        } elseif ($player->getScore() == $dealer->getScore() && $player->getScore() <= BLACKJACK && empty($_POST["surrender"])) {
+        } elseif ($player->getScore() == $dealer->getScore() && $player->getScore() <= BLACKJACK
+                && empty($_POST["surrender"])) {
             return "It's a Draw";
-        } elseif ($player->getScore() > $dealer->getScore() && $player->getScore() <= BLACKJACK && empty($_POST["surrender"])) {
+        } elseif ((($player->getScore() > $dealer->getScore() && $player->getScore() <= BLACKJACK) ||
+                    $dealer->getScore()>BLACKJACK) && empty($_POST["surrender"])) {
             return "Player Wins";
         } elseif (!empty($_POST["surrender"])) {
-            return "Player surrendered";
+            return "Player Surrendered";
         } else return "";
     } else return "";
 }
@@ -65,15 +67,17 @@ if (empty($_POST)){ //At first page load
         $player = $_SESSION["player"];
         $dealer = $_SESSION["dealer"];
 
-        $player->stand();
-        $dealer->setIsMyTurn(true);
+        if ($player->getIsMyTurn()) {
+            $player->stand();
+            $dealer->setIsMyTurn(true);
 
-        if ($player->getScore() <= BLACKJACK) {
-            while ($dealer->getScore() < DEALER_STAND) {
-                $dealer->hit();
+            if ($player->getScore() <= BLACKJACK) {
+                while ($dealer->getScore() < DEALER_STAND) {
+                    $dealer->hit();
+                }
+                $dealer->stand();
+                echo "<h1>" . displayOutcome($player, $dealer) . "</h1>";
             }
-            $dealer->stand();
-            echo "<h1>". displayOutcome($player, $dealer) ."</h1>";
         }
 
     }elseif (!empty($_POST["surrender"])) {
@@ -81,8 +85,10 @@ if (empty($_POST)){ //At first page load
         $player = $_SESSION["player"];
         $dealer = $_SESSION["dealer"];
 
-        $player->surrender();
-        echo "<h1>". displayOutcome($player, $dealer) ."</h1>";
+        if ($player->getIsMyTurn()) {
+            $player->surrender();
+            echo "<h1>" . displayOutcome($player, $dealer) . "</h1>";
+        }
 
     }else { //basically when play again is selected
         $player = new Blackjack(0, true);

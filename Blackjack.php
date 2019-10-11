@@ -53,12 +53,16 @@ class Blackjack
 
     public function stand()
     {
-        $this->isMyTurn = false;
+        if ($this->isMyTurn) {
+            $this->isMyTurn = false;
+        }
     }
 
     public function surrender()
     {
-        $this->isMyTurn=false;
+        if ($this->isMyTurn) {
+            $this->isMyTurn = false;
+        }
     }
 
 }
